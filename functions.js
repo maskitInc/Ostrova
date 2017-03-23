@@ -7,75 +7,81 @@ var mongodbUrl = 'mongodb://' + config.mongodbHost + ':27017/users';
 var MongoClient = require('mongodb').MongoClient
 
 //used in local-signup strategy
-exports.localReg = function (username, password) {
-  var deferred = Q.defer();
+exports.localReg = function(username, password) {
+    var deferred = Q.defer();
 
-  MongoClient.connect(mongodbUrl, function (err, db) {
-    var collection = db.collection('localUsers');
+    MongoClient.connect(mongodbUrl, function(err, db) {
+        var collection = db.collection('localUsers');
 
-    //check if username is already assigned in our database
-    collection.findOne({'username' : username})
-      .then(function (result) {
-        if (null != result) {
-          console.log("USERNAME ALREADY EXISTS:", result.username);
-          deferred.resolve(false); // username exists
-        }
-        else  {
-          var hash = bcrypt.hashSync(password, 8);
-          var user = {
-            "username": username,
-            "password": hash,
-            "avatar": "http://placepuppy.it/images/homepage/Beagle_puppy_6_weeks.JPG"
-          }
+        //check if username is already assigned in our database
+        collection.findOne({
+                'username': username
+            })
+            .then(function(result) {
+                if (null != result) {
+                    console.log("USERNAME ALREADY EXISTS:", result.username);
+                    deferred.resolve(false); // username exists
+                } else {
+                    var hash = bcrypt.hashSync(password, 8);
+                    var user = {
+                        "username": username,
+                        "password": hash,
+                        "avatar": "http://placepuppy.it/images/homepage/Beagle_puppy_6_weeks.JPG"
+                    }
 
-          console.log("CREATING USER:", username);
+                    console.log("CREATING USER:", username);
 
-          collection.insert(user)
-            .then(function () {
-              db.close();
-              deferred.resolve(user);
+                    collection.insert(user)
+                        .then(function() {
+                            db.close();
+                            deferred.resolve(user);
+                        });
+                }
             });
-        }
-      });
-  });
+    });
 
-  return deferred.promise;
+    return deferred.promise;
 };
 
 
-//check if user exists
-    //if user exists check if passwords match (use bcrypt.compareSync(password, hash); // true where 'hash' is password in DB)
-      //if password matches take into website
-  //if user doesn't exist or password doesn't match tell them it failed
-exports.localAuth = function (username, password) {
-  var deferred = Q.defer();
+// check if user exists
+// if user exists check if passwords match
+// (use bcrypt.compareSync(password, hash);
+// true where 'hash' is password in DB)
+// if password matches take into website
+// if user doesn't exist or password doesn't match tell them it failed
 
-  MongoClient.connect(mongodbUrl, function (err, db) {
-    var collection = db.collection('localUsers');
+exports.localAuth = function(username, password) {
+    var deferred = Q.defer();
 
-    collection.findOne({'username' : username})
-      .then(function (result) {
-        if (null == result) {
-          console.log("USERNAME NOT FOUND:", username);
+    MongoClient.connect(mongodbUrl, function(err, db) {
+        var collection = db.collection('localUsers');
 
-          deferred.resolve(false);
-        }
-        else {
-          var hash = result.password;
+        collection.findOne({
+                'username': username
+            })
+            .then(function(result) {
+                if (null == result) {
+                    console.log("USERNAME NOT FOUND:", username);
 
-          console.log("FOUND USER: " + result.username);
+                    deferred.resolve(false);
+                } else {
+                    var hash = result.password;
 
-          if (bcrypt.compareSync(password, hash)) {
-            deferred.resolve(result);
-          } else {
-            console.log("AUTHENTICATION FAILED");
-            deferred.resolve(false);
-          }
-        }
+                    console.log("FOUND USER: " + result.username);
 
-        db.close();
-      });
-  });
+                    if (bcrypt.compareSync(password, hash)) {
+                        deferred.resolve(result);
+                    } else {
+                        console.log("AUTHENTICATION FAILED");
+                        deferred.resolve(false);
+                    }
 
-  return deferred.promise;
+                }
+
+                db.close();
+            });
+    });
+
+    return deferred.promise;
 }
