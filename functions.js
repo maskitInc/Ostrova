@@ -4,7 +4,7 @@ var bcrypt = require('bcryptjs'),
 
 // MongoDB connection information
 var mongodbUrl = 'mongodb://' + config.mongodbHost + ':27017/users';
-var MongoClient = require('mongodb').MongoClient
+var MongoClient = require('mongodb').MongoClient;
 
 //used in local-signup strategy
 exports.localReg = function(username, password) {

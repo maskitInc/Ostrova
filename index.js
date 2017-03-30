@@ -28,6 +28,7 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
+
 app.use(bodyParser.json());
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(session({
@@ -35,23 +36,24 @@ app.use(session({
     saveUninitialized: true,
     resave: true
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Session-persisted message middleware
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     var err = req.session.error,
         msg = req.session.notice,
         success = req.session.success;
-
+    
     delete req.session.error;
     delete req.session.success;
     delete req.session.notice;
-
+    
     if (err) res.locals.error = err;
     if (msg) res.locals.notice = msg;
     if (success) res.locals.success = success;
-
+    
     next();
 });
 
@@ -59,6 +61,7 @@ app.use(function(req, res, next) {
 var hbs = exphbs.create({
     defaultLayout: 'main', //we will be creating this layout shortly
 });
+
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
@@ -74,7 +77,7 @@ console.log("listening on " + port + "!");
 
 //===============ROUTES=================
 //displays our homepage
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.render('home', {
         user: req.user
     });
@@ -82,10 +85,9 @@ app.get('/', function(req, res) {
 
 
 //displays our signup page
-app.get('/signin', function(req, res) {
+app.get('/signin', function (req, res) {
     res.render('signin');
 });
-
 
 //sends the request through our local signup strategy, and if successful takes user to homepage, otherwise returns then to signin page
 app.post('/local-reg', passport.authenticate('local-signup', {
@@ -93,16 +95,14 @@ app.post('/local-reg', passport.authenticate('local-signup', {
     failureRedirect: '/signin'
 }));
 
-
 //sends the request through our local login/signin strategy, and if successful takes user to homepage, otherwise returns then to signin page
 app.post('/login', passport.authenticate('local-signin', {
     successRedirect: '/',
     failureRedirect: '/signin'
 }));
 
-
 //logs user out of site, deleting them from the session, and returns to homepage
-app.get('/logout', function(req, res) {
+app.get('/logout', function (req, res) {
     var name = req.user.username;
     console.log("LOGGIN OUT " + req.user.username)
     req.logout();
@@ -110,16 +110,15 @@ app.get('/logout', function(req, res) {
     req.session.notice = "You have successfully been logged out " + name + "!";
 });
 
-
 //===============PASSPORT=================
 // Use the LocalStrategy within Passport to login/"signin" users.
 passport.use('local-signin', new LocalStrategy({
         passReqToCallback: true
     },
     //allows us to pass back the request to the callback
-    function(req, username, password, done) {
+    function (req, username, password, done) {
         funct.localAuth(username, password)
-            .then(function(user) {
+            .then(function (user) {
                 if (user) {
                     console.log("LOGGED IN AS: " + user.username);
                     req.session.success = 'You are successfully logged in ' + user.username + '!';
@@ -131,7 +130,7 @@ passport.use('local-signin', new LocalStrategy({
                     done(null, user);
                 }
             })
-            .fail(function(err) {
+            .fail(function (err) {
                 console.log(err.body);
             });
     }
@@ -143,9 +142,9 @@ passport.use('local-signup', new LocalStrategy({
         passReqToCallback: true
     },
     //allows us to pass back the request to the callback
-    function(req, username, password, done) {
+    function (req, username, password, done) {
         funct.localReg(username, password)
-            .then(function(user) {
+            .then(function (user) {
                 if (user) {
                     console.log("REGISTERED: " + user.username);
                     req.session.success = 'You are successfully registered and logged in ' + user.username + '!';
@@ -157,20 +156,19 @@ passport.use('local-signup', new LocalStrategy({
                     done(null, user);
                 }
             })
-            .fail(function(err) {
+            .fail(function (err) {
                 console.log(err.body);
             });
     }
-
 ));
 
 // Passport session setup.
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     console.log("serializing " + user.username);
     done(null, user);
 });
 
-passport.deserializeUser(function(obj, done) {
+passport.deserializeUser(function (obj, done) {
     console.log("deserializing " + obj);
     done(null, obj);
 });
