@@ -77,7 +77,8 @@ console.log("listening on " + port + "!");
 //displays our homepage
 app.get('/', function (req, res) {
     res.render('home', {
-        user: req.user
+        user: req.user,
+        client: req.client
     });
 });
 
@@ -88,6 +89,12 @@ app.get('/signin', function (req, res) {
 
 //sends the request through our local signup strategy, and if successful takes user to homepage, otherwise returns then to signin page
 app.post('/local-reg', passport.authenticate('local-signup', {
+    successRedirect: '/',
+    failureRedirect: '/signin'
+}));
+
+//sends the request through our local signup strategy, and if successful takes user to homepage, otherwise returns then to signin page
+app.post('/add-new-row', passport.authenticate('add-new-row', {
     successRedirect: '/',
     failureRedirect: '/signin'
 }));
@@ -151,6 +158,33 @@ passport.use('local-signup', new LocalStrategy({
                     console.log("COULD NOT REGISTER");
                     req.session.error = 'That username is already in use, please try a different one.'; //inform user could not log them in
                     done(null, user);
+                }
+            })
+            .fail(function (err) {
+                console.log(err.body);
+            });
+    }
+));
+
+
+// Use the LocalStrategy within Passport to register/"signup" users.
+passport.use('add-new-row', new LocalStrategy({
+        passReqToCallback: true
+    },
+    //allows us to pass back the request to the callback
+    function (req, areaNum, clientName, clientPhone, counterMark, done) {
+        console.log("REGISTEREdfgdf gdfg df gD: ");
+        funct.addRow(areaNum, clientName, clientPhone, counterMark)
+            .then(function (client) {
+                if (client) {
+                    console.log("REGISTERED: " + client.clientName);
+                    req.session.success = 'You are successfully registered and logged in ' + client.clientName + '!';
+                    done(null, client);
+                }
+                if (!user) {
+                    console.log("COULD NOT REGISTER");
+                    req.session.error = 'That username is already in use, please try a different one.'; //inform user could not log them in
+                    done(null, client);
                 }
             })
             .fail(function (err) {

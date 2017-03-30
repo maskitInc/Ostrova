@@ -4,13 +4,14 @@ var bcrypt = require('bcryptjs'),
 
 // MongoDB connection information
 var mongodbUrl = 'mongodb://' + config.mongodbHost + ':27017/users';
+var MongoUser = require('mongodb').MongoClient;
 var MongoClient = require('mongodb').MongoClient;
 
 //used in local-signup strategy
 exports.localReg = function (username, password) {
     var deferred = Q.defer();
-    
-    MongoClient.connect(mongodbUrl, function (err, db) {
+
+    MongoUser.connect(mongodbUrl, function (err, db) {
         var collection = db.collection('localUsers');
         
         //check if username is already assigned in our database
@@ -45,6 +46,7 @@ exports.localReg = function (username, password) {
 
 
 //used in add-row strategy
+
 exports.addRow = function (areaNum, clientName, clientPhone, counterMark) {
     var deferred = Q.defer();
     
@@ -53,7 +55,7 @@ exports.addRow = function (areaNum, clientName, clientPhone, counterMark) {
         
         //check if username is already assigned in our database
         collection.findOne({
-            'name': clientName
+            'clientName': clientName
         })
             .then(function (result) {
                 if (null != result) {
@@ -61,10 +63,10 @@ exports.addRow = function (areaNum, clientName, clientPhone, counterMark) {
                     deferred.resolve(false); // username exists
                 } else {
                     var client = {
-                        "areanum": areaNum,
-                        "name": clientName,
-                        "phone": clientName,
-                        "countermark": counterMark
+                        "areaNum": areaNum,
+                        "clientName": clientName,
+                        "clientPhone": clientPhone,
+                        "counterMark": counterMark
                     }
                     
                     console.log("CREATING client:", clientName);
@@ -90,8 +92,8 @@ exports.addRow = function (areaNum, clientName, clientPhone, counterMark) {
 
 exports.localAuth = function (username, password) {
     var deferred = Q.defer();
-    
-    MongoClient.connect(mongodbUrl, function (err, db) {
+
+    MongoUser.connect(mongodbUrl, function (err, db) {
         var collection = db.collection('localUsers');
         
         collection.findOne({
