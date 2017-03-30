@@ -66,14 +66,12 @@ app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
 //===============ROUTES===============
-
 //This section will hold our Routes
-
 //===============PORT=================
+
 var port = process.env.PORT || 8080; //select your port or let it pull from your .env file
 app.listen(port);
 console.log("listening on " + port + "!");
-
 
 //===============ROUTES=================
 //displays our homepage
@@ -82,7 +80,6 @@ app.get('/', function (req, res) {
         user: req.user
     });
 });
-
 
 //displays our signup page
 app.get('/signin', function (req, res) {
@@ -168,9 +165,9 @@ passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
-passport.deserializeUser(function (obj, done) {
-    console.log("deserializing " + obj);
-    done(null, obj);
+passport.deserializeUser(function (user, done) {
+    console.log("deserializing " + user.username);
+    done(null, user);
 });
 
 // Simple route middleware to ensure user is authenticated.
